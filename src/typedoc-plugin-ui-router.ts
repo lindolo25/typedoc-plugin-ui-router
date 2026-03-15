@@ -22,7 +22,11 @@ export function load(app: td.Application) {
     "default",
     class CustomNavigationTheme extends td.DefaultTheme {
       public override buildNavigation(project: td.Models.ProjectReflection): td.NavigationElement[] {
-        return _buildCustomNavigation.call(this, project, navigation);
+        const _apiNavigation = super.buildNavigation(project);
+        return _buildCustomNavigation.call(this, project, navigation).concat([{
+          text: "API",
+          children: _apiNavigation
+        } as td.NavigationElement]);
       }
     }
   );
@@ -99,12 +103,24 @@ export function _buildCustomNavigation(this: td.DefaultTheme, project: td.Models
           navigationGroup.children.push({
             text: matchedReflection.name,
             path: this.router.getFullUrl(matchedReflection),
+            kind: matchedReflection.kind & td.ReflectionKind.Project ? undefined : matchedReflection.kind,
+            class: _classNames({ deprecated: matchedReflection.isDeprecated() }, this.getReflectionClasses(matchedReflection)),
           });
         });
         return acc;
       },
       [] as td.NavigationElement[]
     );
+}
+
+function _classNames(names: Record<string, boolean | null | undefined>, extraCss?: string) {
+  const css = Object.keys(names)
+    .filter((key) => names[key])
+    .concat(extraCss || "")
+    .join(" ")
+    .trim()
+    .replace(/\s+/g, " ");
+  return css.length ? css : undefined;
 }
 
 /**
