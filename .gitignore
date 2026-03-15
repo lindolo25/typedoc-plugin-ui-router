@@ -3,10 +3,6 @@
 *.iml
 .idea
 
-# Built using tsc
-*.js
-!publish.js
-
 # Logs
 logs
 *.log
@@ -34,6 +30,7 @@ coverage
 
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 build/Release
+dist
 
 # Dependency directories
 node_modules

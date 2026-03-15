@@ -2,7 +2,7 @@
   "name": "typedoc-plugin-ui-router",
   "version": "4.0.1",
   "description": "Typedoc customizations for ui-router",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "release": "release",

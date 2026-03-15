@@ -1,9 +1,10 @@
 {
+  "$schema": "https://www.schemastore.org/tsconfig",
   "compilerOptions": {
     "moduleResolution": "node",
     "module": "CommonJS",
     "target": "ES2017",
-    "outDir": "./",
+    "outDir": "./dist",
     "lib": ["ES2020", "dom"],
     "experimentalDecorators": true,
     "esModuleInterop": true,
