@@ -22,7 +22,7 @@ export function load(app: td.Application) {
     "default",
     class CustomNavigationTheme extends td.DefaultTheme {
       public override buildNavigation(project: td.Models.ProjectReflection): td.NavigationElement[] {
-        return _buildCustomNavigation(project, navigation);
+        return _buildCustomNavigation.call(this, project, navigation);
       }
     }
   );
@@ -85,7 +85,7 @@ export function _converterResolveEventFactory() {
  * @param nav Navigation configuration retreived from package.json file.
  * @returns Navigation elemenst array used by Theme to build the Docs navigation.
  */
-export function _buildCustomNavigation(project: td.Models.ProjectReflection, nav: Navigation): td.NavigationElement[] {
+export function _buildCustomNavigation(this: td.DefaultTheme, project: td.Models.ProjectReflection, nav: Navigation): td.NavigationElement[] {
   return Object.entries(nav)
     .reduce(
       (acc, [key, value]) => {
@@ -95,7 +95,7 @@ export function _buildCustomNavigation(project: td.Models.ProjectReflection, nav
         value.forEach((item: string) => {
           if (typeof item != "string") return;
           const matchedReflection: td.Reflection = project.getChildByName(item);
-          if (!matchedReflection || !this.router.hasOwnDocument(matchedReflection)) return;
+          if (!matchedReflection || !this.router?.hasOwnDocument(matchedReflection)) return;
           navigationGroup.children.push({
             text: matchedReflection.name,
             path: this.router.getFullUrl(matchedReflection),
