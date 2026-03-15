@@ -86,12 +86,12 @@ export function _converterResolveEventFactory() {
  * @returns Navigation elemenst array used by Theme to build the Docs navigation.
  */
 export function _buildCustomNavigation(project: td.Models.ProjectReflection, nav: Navigation): td.NavigationElement[] {
-  const menu = Object.entries(nav)
+  return Object.entries(nav)
     .reduce(
       (acc, [key, value]) => {
         const navigationGroup: td.NavigationElement = { text: key, children: [] }
-        acc.push(navigationGroup)
         if (!Array.isArray(value) || value.length < 1) return acc;
+        acc.push(navigationGroup);
         value.forEach((item: string) => {
           if (typeof item != "string") return;
           const matchedReflection: td.Reflection = project.getChildByName(item);
@@ -105,7 +105,6 @@ export function _buildCustomNavigation(project: td.Models.ProjectReflection, nav
       },
       [] as td.NavigationElement[]
     );
-  return menu;
 }
 
 /**
