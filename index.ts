@@ -1,1 +1,1 @@
-export { load } from './typedoc-plugin-ui-router';
+export { load } from './src/typedoc-plugin-ui-router';

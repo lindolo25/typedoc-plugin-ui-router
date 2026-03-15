@@ -4,11 +4,8 @@
 .idea
 
 # Built using tsc
-index.js
-renameExternalModulePlugin.js
-GithubPluginMonkeyPatch.js
-handlebarsDebug.js
-typedoc-plugin-ui-router.js
+*.js
+!publish.js
 
 # Logs
 logs

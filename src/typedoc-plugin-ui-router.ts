@@ -1,10 +1,6 @@
 import * as fs from 'fs';
-import path from 'path';
 import * as td from 'typedoc';
-
-interface Navigation {
-  [sectionName: string]: Array<string | object>;
-}
+import { Navigation } from "./abstractions";
 
 export function load(app: td.Application) {
   const CONFIG = `package.json`;
