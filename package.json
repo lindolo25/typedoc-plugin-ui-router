@@ -19,16 +19,14 @@
   "author": "Chris Thielen",
   "license": "MIT",
   "dependencies": {
-    "lodash": "^4.17.19"
+    "typedoc": "^0.28.16"
   },
   "devDependencies": {
-    "@types/handlebars": "^4.1.0",
     "@types/node": "^22.0.0",
     "@uirouter/publish-scripts": "^2.3.49",
     "husky": "^9.1.7",
     "prettier": "^3.7.4",
     "pretty-quick": "^4.2.2",
-    "typedoc": "^0.28.16",
     "typescript": "~5.9.3"
   }
 }
