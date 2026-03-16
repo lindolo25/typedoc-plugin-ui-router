@@ -15,8 +15,8 @@ import { Navigation } from "./abstractions";
  */
 export function load(app: td.Application) {
   const navigation = _loadNavigation();
-  (app.converter as any).on(td.Converter.EVENT_RESOLVE, _converterResolveEventFactory());
-  (app.renderer as any).on(td.Renderer.EVENT_BEGIN, _rendererBeginEventFactory());
+  (app.converter as any).on(td.Converter.EVENT_RESOLVE, _converterResolveEventHandler);
+  (app.renderer as any).on(td.Renderer.EVENT_BEGIN, _rendererBeginEventHandler);
   app.renderer.removeTheme("default");
   app.renderer.defineTheme(
     "default",
@@ -48,35 +48,33 @@ export function _loadNavigation(fileDir: string = "package.json"): Navigation {
  * @internal
  * @returns Handler function for Converter RESOLVE event.
  */
-export function _converterResolveEventFactory() {
-  return (context: td.Context) => {
-    // Remove the "References" section (re-exports --  revisit this when Typedoc library mode lands in 0.18.x)
-    for (const reflection of context.project.getReflectionsByKind(td.ReflectionKind.Reference)) {
-      context.project.removeReflection(reflection);
-    }
-
-    // Rename other included @uirouter modules to a nicer name, e.g., @uirouter/core/state/stateService
-    for (const reflection of context.project.getReflectionsByKind(td.ReflectionKind.Module)) {
-      if (
-        reflection instanceof td.DeclarationReflection &&
-        reflection.sources?.find((x) => x.fileName.includes('@uirouter'))
-      ) {
-        const match = new RegExp('"?(node_modules/)?(@uirouter/[^/]+)(/lib|/src)?(/.*?)(.d)?"?$').exec(reflection.name);
-        if (match) {
-          reflection.name = `${match[2]}${match[4]}`;
-        }
-      }
-    }
-
-    // Rename source file names of included @uirouter files, stripping of the prefixed /src
-    Object.values(context.project.reflections).forEach((reflection) => {
-      if (!reflection.kindOf(td.ReflectionKind.Module) && reflection instanceof td.DeclarationReflection) {
-        reflection.sources?.forEach((source) => {
-          source.fileName = source.fileName.replace(/^\/?(project\/)?(src\/includes\/)?/g, '');
-        });
-      }
-    });
+export function _converterResolveEventHandler(context: td.Context) {
+  // Remove the "References" section (re-exports --  revisit this when Typedoc library mode lands in 0.18.x)
+  for (const reflection of context.project.getReflectionsByKind(td.ReflectionKind.Reference)) {
+    context.project.removeReflection(reflection);
   }
+
+  // Rename other included @uirouter modules to a nicer name, e.g., @uirouter/core/state/stateService
+  for (const reflection of context.project.getReflectionsByKind(td.ReflectionKind.Module)) {
+    if (
+      reflection instanceof td.DeclarationReflection &&
+      reflection.sources?.find((x) => x.fileName.includes('@uirouter'))
+    ) {
+      const match = new RegExp('"?(node_modules/)?(@uirouter/[^/]+)(/lib|/src)?(/.*?)(.d)?"?$').exec(reflection.name);
+      if (match) {
+        reflection.name = `${match[2]}${match[4]}`;
+      }
+    }
+  }
+
+  // Rename source file names of included @uirouter files, stripping of the prefixed /src
+  Object.values(context.project.reflections).forEach((reflection) => {
+    if (!reflection.kindOf(td.ReflectionKind.Module) && reflection instanceof td.DeclarationReflection) {
+      reflection.sources?.forEach((source) => {
+        source.fileName = source.fileName.replace(/^\/?(project\/)?(src\/includes\/)?/g, '');
+      });
+    }
+  });
 }
 
 /**
@@ -99,6 +97,8 @@ export function _buildCustomNavigation(this: td.DefaultTheme, project: td.Models
           navigationGroup.children.push({
             text: matchedReflection.name,
             path: this.router.getFullUrl(matchedReflection),
+            kind: matchedReflection.kind & td.ReflectionKind.Project ? undefined : matchedReflection.kind,
+            class: _classNames({ deprecated: matchedReflection.isDeprecated() }, this.getReflectionClasses(matchedReflection)),
           });
         });
         return acc;
@@ -107,27 +107,36 @@ export function _buildCustomNavigation(this: td.DefaultTheme, project: td.Models
     );
 }
 
+function _classNames(names: Record<string, boolean | null | undefined>, extraCss?: string) {
+  const css = Object.keys(names)
+    .filter((key) => names[key])
+    .concat(extraCss || "")
+    .join(" ")
+    .trim()
+    .replace(/\s+/g, " ");
+  return css.length ? css : undefined;
+}
+
 /**
  * @internal
  * @returns Handler function for Renderer BEGIN event.
  */
-export function _rendererBeginEventFactory() {
+export function _rendererBeginEventHandler(rendererEvent: td.RendererEvent) {
+  // Why can't I find by ReflectionKind.Global?
+  const externalModules = rendererEvent.project.getReflectionsByKind(td.ReflectionKind.Module);
+  externalModules
+    .map(_findGlobalReflection)
+    .filter((x) => !!x)
+    .reduce((acc, item) => (acc.includes(item) ? acc : acc.concat(item)), [])
+    .forEach((global) => (global.url = 'index.html'));
+}
 
-  // Make all links to the "Globals" reflection point to the index.html
-  // Effectively replaces the "Globals" page with the index page.
-  function findGlobalReflection(ref) {
-    if (!ref) return undefined;
-    if (ref.kind === td.ReflectionKind.Project) return ref;
-    return findGlobalReflection(ref.parent);
-  }
-  
-  return (rendererEvent: td.RendererEvent) => {
-    // Why can't I find by ReflectionKind.Global?
-    const externalModules = rendererEvent.project.getReflectionsByKind(td.ReflectionKind.Module);
-    externalModules
-      .map(findGlobalReflection)
-      .filter((x) => !!x)
-      .reduce((acc, item) => (acc.includes(item) ? acc : acc.concat(item)), [])
-      .forEach((global) => (global.url = 'index.html'));
-  }
+/**
+ * Make all links to the "Globals" reflection point to the index.html
+ * Effectively replaces the "Globals" page with the index page.
+ */
+function _findGlobalReflection(ref: td.Reflection) {
+  if (!ref) return undefined;
+  if (ref.kind === td.ReflectionKind.Project) return ref;
+  return _findGlobalReflection(ref.parent);
 }
