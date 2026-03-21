@@ -17,6 +17,22 @@ export function load(app: td.Application) {
   const navigation = _loadNavigation();
   (app.converter as any).on(td.Converter.EVENT_RESOLVE, _converterResolveEventHandler);
   (app.renderer as any).on(td.Renderer.EVENT_BEGIN, _rendererBeginEventHandler);
+  app.renderer.hooks.on('head.begin', () =>
+    td.JSX.createElement(
+      'script',
+      null,
+      td.JSX.createElement(td.JSX.Raw, {
+        html: "localStorage.setItem('tsd-theme', localStorage.getItem('tsd-theme') || 'light');",
+      }),
+    ),
+  );
+  app.renderer.hooks.on('footer.end', () =>
+    td.JSX.createElement(
+      'style',
+      null,
+      td.JSX.createElement(td.JSX.Raw, { html: '.tsd-theme-select { display: none !important; }' }),
+    ),
+  );
   app.renderer.removeTheme("default");
   app.renderer.defineTheme(
     "default",
