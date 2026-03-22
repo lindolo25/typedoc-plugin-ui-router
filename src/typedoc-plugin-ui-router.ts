@@ -17,22 +17,8 @@ export function load(app: td.Application) {
   const navigation = _loadNavigation();
   (app.converter as any).on(td.Converter.EVENT_RESOLVE, _converterResolveEventHandler);
   (app.renderer as any).on(td.Renderer.EVENT_BEGIN, _rendererBeginEventHandler);
-  app.renderer.hooks.on('head.begin', () =>
-    td.JSX.createElement(
-      'script',
-      null,
-      td.JSX.createElement(td.JSX.Raw, {
-        html: "localStorage.setItem('tsd-theme', localStorage.getItem('tsd-theme') || 'light');",
-      }),
-    ),
-  );
-  app.renderer.hooks.on('footer.end', () =>
-    td.JSX.createElement(
-      'style',
-      null,
-      td.JSX.createElement(td.JSX.Raw, { html: '.tsd-theme-select { display: none !important; }' }),
-    ),
-  );
+  app.renderer.hooks.on('head.begin', _rendererHeadBeginHookHandler);
+  app.renderer.hooks.on('footer.end', _rendererFooterEndHookHandler);
   app.renderer.removeTheme("default");
   app.renderer.defineTheme(
     "default",
@@ -155,4 +141,22 @@ function _findGlobalReflection(ref: td.Reflection) {
   if (!ref) return undefined;
   if (ref.kind === td.ReflectionKind.Project) return ref;
   return _findGlobalReflection(ref.parent);
+}
+
+export function _rendererHeadBeginHookHandler() {
+  return td.JSX.createElement(
+    'script',
+    null,
+    td.JSX.createElement(td.JSX.Raw, {
+      html: "localStorage.setItem('tsd-theme', localStorage.getItem('tsd-theme') || 'light');",
+    }),
+  )
+}
+
+export function _rendererFooterEndHookHandler() {
+  return td.JSX.createElement(
+    'style',
+    null,
+    td.JSX.createElement(td.JSX.Raw, { html: '.tsd-theme-toggle { display: none !important; } .tsd-page-toolbar { position: static !important; }' }),
+  )
 }
