@@ -134,6 +134,7 @@ export function _rendererBeginEventHandler(rendererEvent: td.RendererEvent) {
 }
 
 /**
+ * @internal
  * Make all links to the "Globals" reflection point to the index.html
  * Effectively replaces the "Globals" page with the index page.
  */
@@ -143,6 +144,13 @@ function _findGlobalReflection(ref: td.Reflection) {
   return _findGlobalReflection(ref.parent);
 }
 
+/**
+ * @internal
+ * This handler adds a script element to the header of generated pages that is configure to 
+ * set the theme as "light". this avoids the default behavior of the theme of choosing the 
+ * color scheme set by system or browser.
+ * @returns JXS <script> element.
+ */
 export function _rendererHeadBeginHookHandler() {
   return td.JSX.createElement(
     'script',
@@ -153,6 +161,13 @@ export function _rendererHeadBeginHookHandler() {
   )
 }
 
+/**
+ * @internal
+ * This handler adds a style tag to the end of generated documents. this stylsheet fixes the following.
+ * - hides the select element in the document that toggles the theme.
+ * - changes the position porperty of the page toolbar from `sticky` to `static`
+ * @returns JXS <style> element
+ */
 export function _rendererFooterEndHookHandler() {
   return td.JSX.createElement(
     'style',
